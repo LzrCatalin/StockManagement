@@ -2,6 +2,7 @@ package Project;
 
 import jdk.jshell.spi.SPIResolutionException;
 
+import javax.swing.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +42,34 @@ public class Main {
 
 		} catch (SQLException e) {
 			System.err.println("Error: " + e.getMessage());
+		}
+	}
+
+	public static void creatingShoppingCartTable() {
+		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
+
+		try {
+			Connection connection = DriverManager.getConnection(url);
+			System.out.println("Connected to SQLite database.");
+
+			// Create statement
+			String sql = "CREATE TABLE IF NOT EXISTS shoppingcart (\n"
+					+ "id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+					+ "barcode TEXT,\n"
+					+ "quantity INTEGER,\n"
+					+ "price REAL,\n"
+					+ "FOREIGN KEY(barcode) REFERENCES stock(barcode)\n"
+					+ ");";
+
+			Statement statement = connection.createStatement();
+			statement.execute(sql);
+
+			System.out.println("Table {shopping cart} created succesffully.");
+			// Close connection
+			connection.close();
+
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -182,8 +211,10 @@ public class Main {
 			Connection connection = DriverManager.getConnection(url);
 			System.out.println("Connected to SQLite database.");
 			String productName = product.getName();
+			String barcode = product.getBarcode();
 
-			boolean productExists = isProductInStock(categoryName, productName);
+			//boolean productExists = isProductInStock(categoryName, productName);
+			boolean productExists = isProductInStockByBarcode(categoryName, barcode);
 			if (!productExists) {
 				String sql = "INSERT INTO stock (category, barcode, product_name, quantity, price) VALUES (?, ?, ?, ?, ?)";
 
@@ -261,12 +292,13 @@ public class Main {
 			Connection connection = DriverManager.getConnection(url);
 			System.out.println("Connected to SQLite database.");
 
+			String barcode = product.getBarcode();
 			String productName = product.getName();
 			int quantity = product.getQuantity();
 			double price = product.getPrice();
 
 			if (quantity != newQuantity && price != newPrice) {
-				boolean productExists = isProductInStock(categoryName, productName);
+				boolean productExists = isProductInStockByBarcode(categoryName, barcode);
 				if (productExists) {
 					String sql = "UPDATE stock SET quantity = ?, price = ? WHERE category = ? AND product_name = ?";
 
@@ -296,6 +328,12 @@ public class Main {
 			throw new RuntimeException(e);
 		}
 	}
+
+	/**
+	 * Function for deleting a row from stock db based on product barcode and category
+	 * @param categoryName = category from which we want to delete
+	 * @param product = product which we want to delete
+	 */
 	public static void deleteProductByBarcode(String categoryName, Product product) {
 		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
 
@@ -332,11 +370,81 @@ public class Main {
 	}
 
 	/**
+	 * Function for checking if barcode exists inside shopping cart
+	 * @param product = product data
+	 * @return true if barcode found/ false if not
+	 */
+	public static boolean isProductInCartByBarcode(Product product) {
+		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
+		boolean exists = false;
+
+		try {
+			Connection connection = DriverManager.getConnection(url);
+			System.out.println("Connected successfully to shopping cart db.");
+
+			String query = "SELECT * FROM shoppingcart WHERE barcode = ?";
+
+			PreparedStatement preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setString(1, product.getBarcode());
+
+			// Get result
+			ResultSet resultSet = preparedStatement.executeQuery();
+			if (resultSet.next()) {
+				int count = resultSet.getInt(1);
+				// Assign the boolean value
+				exists = (count > 0);
+			}
+
+			// Close connection
+			connection.close();
+
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+
+		return exists;
+	}
+
+	/**
+	 * Function for inserting product into shopping cart
+	 * @param product = product data
+	 *                TODO: DO IMPLEMENTATION FOR ADDING THE WANTED QUANTITY FOR EACH PRODUCT
+	 */
+	public static void insertIntoShoppingCart(Product product) {
+		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
+
+		try {
+			Connection connection = DriverManager.getConnection(url);
+			System.out.println("Connected successfully to shopping cart db.");
+
+			boolean productExists = isProductInCartByBarcode(product);
+			if (!productExists) {
+				String query = "INSERT INTO shoppingcart (barcode, quantity, price) VALUES (?, ?, ?)";
+
+				PreparedStatement preparedStatement = connection.prepareStatement(query);
+				preparedStatement.setString(1, product.getBarcode());
+				preparedStatement.setInt(2, product.getQuantity());
+				preparedStatement.setDouble(3, product.getPrice());
+
+				preparedStatement.executeUpdate();
+				System.out.println("Successfully added product into shopping cart.");
+			}
+			// ADD ELSE
+			// Close connection
+			connection.close();
+
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
 	 * Main where we test our functions
 	 * @param args = args
 	 */
 	public static void main(String[] args) {
 
+		//creatingShoppingCartTable();
 		//creatingTable("stock");
 		//addColumnToStock();
 		//addUniqueConstraintToBarcode();
@@ -367,10 +475,14 @@ public class Main {
 		 }
 		 **/
 
-		Product product = getProductDetails("0101");
+		//insertIntoStockTable("CPUs", new Product("0101", "I9-11750KF", 5, 650));
 
-		boolean result = isProductInStockByBarcode("CPUs", "0101");
-		System.out.println(result);
+		//Product product = getProductDetails("0101");
+		//System.out.println(isProductInCartByBarcode(product));
+		//insertIntoShoppingCart(product);
+
+		//boolean result = isProductInStockByBarcode("CPUs", "0101");
+		//System.out.println(result);
 
 		// Calling modify product function
 		/**
