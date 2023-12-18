@@ -200,11 +200,50 @@ public class Main {
 	}
 
 	/**
+	 * Function for helping us find a product in stock based by name
+	 * @param categoryName = category where we do search
+	 * @param name = barcode we search for
+	 * @return = true if we found it / false if not
+	 */
+	public static boolean isProductInStockByName(String categoryName, String name) {
+		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
+		boolean exists = false;
+
+		try {
+			Connection connection = DriverManager.getConnection(url);
+			System.out.println("Connected successfully to database");
+
+			// Query to check if products exists in stock based on category name and product name
+			String query = "SELECT * FROM stock WHERE category = ? and product_name = ?";
+
+			PreparedStatement preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setString(1, categoryName);
+			preparedStatement.setString(2, name);
+
+			// Get result from executing query
+			ResultSet resultSet = preparedStatement.executeQuery();
+			if (resultSet.next()) {
+				int count = resultSet.getInt(1);
+				// Assign the boolean value
+				exists = (count > 0);
+			}
+
+			// Close connection
+			connection.close();
+
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+
+		return exists;
+	}
+
+	/**
 	 * Function to add product in stock db
 	 * @param categoryName = name of category where we want to add
 	 * @param product = product to add
 	 */
-	public static void insertIntoStockTable(String categoryName, Product product) {
+	public static boolean insertIntoStockTable(String categoryName, Product product) {
 		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
 
 		try {
@@ -214,8 +253,10 @@ public class Main {
 			String barcode = product.getBarcode();
 
 			//boolean productExists = isProductInStock(categoryName, productName);
-			boolean productExists = isProductInStockByBarcode(categoryName, barcode);
-			if (!productExists) {
+			boolean productExistsByBarcode = isProductInStockByBarcode(categoryName, barcode);
+			boolean productExistsByName = isProductInStockByName(categoryName, productName);
+
+			if (!productExistsByBarcode && !productExistsByName) {
 				String sql = "INSERT INTO stock (category, barcode, product_name, quantity, price) VALUES (?, ?, ?, ?, ?)";
 
 				PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -226,14 +267,31 @@ public class Main {
 				preparedStatement.setDouble(5, product.getPrice());
 
 				preparedStatement.executeUpdate();
+
+				// Close connection
+				connection.close();
 				System.out.println("Data added successfully in stock");
+				return true;
+
+			} else if (productExistsByBarcode && !productExistsByName){
+				System.err.printf("Barcode {%s} already in use for category %s.\n", barcode, categoryName);
+
+				// Close connection
+				connection.close();
+				return false;
+			} else if (!productExistsByBarcode && productExistsByName) {
+				System.err.printf("Name {%s} already in use for category {%s}.\n", productName, categoryName);
+
+				// Close connection
+				connection.close();
+				return false;
 			} else {
-				System.out.println("Product already exists in stock: " + productName + " on category: " + categoryName);
+				System.err.printf("Barcode {%s} and Name {%s} already in use for category {%s}.\n", barcode, productName, categoryName);
+
+				// Close connection
+				connection.close();
+				return false;
 			}
-
-			// Close connection
-			connection.close();
-
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -475,9 +533,12 @@ public class Main {
 		 }
 		 **/
 
-		//insertIntoStockTable("CPUs", new Product("0101", "I9-11750KF", 5, 650));
+		Product product = getProductDetails("0101");
 
-		//Product product = getProductDetails("0101");
+		String name = product.getName();
+		System.out.println(isProductInStockByName("CPUs", name));
+
+		insertIntoStockTable("CPUs", new Product("0101", "I9-11750KF", 5, 650));
 		//System.out.println(isProductInCartByBarcode(product));
 		//insertIntoShoppingCart(product);
 
