@@ -1,12 +1,6 @@
 package Project;
 
-import jdk.jshell.spi.SPIResolutionException;
-
-import javax.swing.*;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Main {
 	/**
@@ -173,7 +167,6 @@ public class Main {
 		try {
 			Connection connection = DriverManager.getConnection(url);
 			System.out.println("Connected successfully to database");
-
 			// Query to check if products exists in stock based on category name and product name
 			String query = "SELECT * FROM stock WHERE category = ? and barcode = ?";
 
@@ -343,24 +336,23 @@ public class Main {
 	 * @param newQuantity = new quantity for the product
 	 * @param newPrice = new price for the product
 	 */
-	public static void modifyProduct(String categoryName, Product product, int newQuantity, double newPrice) {
+	public static boolean modifyProduct(String categoryName, Product product, int newQuantity, double newPrice) {
 		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
 
 		try {
 			Connection connection = DriverManager.getConnection(url);
 			System.out.println("Connected to SQLite database.");
 
-			String barcode = product.getBarcode();
-			String productName = product.getName();
-			int quantity = product.getQuantity();
-			double price = product.getPrice();
+			if (product != null) {
+				String productName = product.getName();
+				int quantity = product.getQuantity();
+				double price = product.getPrice();
 
-			if (quantity != newQuantity && price != newPrice) {
-				boolean productExists = isProductInStockByBarcode(categoryName, barcode);
-				if (productExists) {
-					String sql = "UPDATE stock SET quantity = ?, price = ? WHERE category = ? AND product_name = ?";
+				// Statement where we modify both quantity and price
+				if (newQuantity != quantity && newPrice != price) {
+					String query = "UPDATE stock SET quantity = ?, price = ? WHERE category = ? AND product_name = ?";
 
-					PreparedStatement preparedStatement = connection.prepareStatement(sql);
+					PreparedStatement preparedStatement = connection.prepareStatement(query);
 					preparedStatement.setInt(1, newQuantity);
 					preparedStatement.setDouble(2, newPrice);
 					preparedStatement.setString(3, categoryName);
@@ -368,20 +360,82 @@ public class Main {
 
 					int confirm = preparedStatement.executeUpdate();
 					if (confirm > 0) {
-						System.out.println("Product " + productName + " in category " + categoryName + " successfully modified");
+						System.out.printf("Product {%s} in category {%s} successfully modified.\n", productName, categoryName);
+
+						// Close connection
+						connection.close();
+						return true;
 					} else {
-						System.out.println(" <!> Error modifying product <!>");
+						System.out.println("<!> Failed modifying product");
+
+						// Close connection
+						connection.close();
+						return false;
+					}
+					// Statement where we modify only the quantity
+				} else if (newQuantity != quantity && newPrice == price) {
+					String query = "UPDATE stock SET quantity = ? WHERE category = ? AND product_name = ?";
+
+					PreparedStatement preparedStatement = connection.prepareStatement(query);
+					preparedStatement.setInt(1, newQuantity);
+					preparedStatement.setString(2, categoryName);
+					preparedStatement.setString(3, productName);
+
+					int confirm = preparedStatement.executeUpdate();
+					if (confirm > 0) {
+						System.out.printf("Quantity of product {%s} in category {%s} successfully modified.\n", productName, categoryName);
+
+						// Close connection
+						connection.close();
+						return true;
+
+					} else {
+						System.out.println("<!> Failed modifying product");
+
+						// Close connection
+						connection.close();
+						return false;
+					}
+					// Statement where we modify only the price
+				} else if (newQuantity == quantity && newPrice != price) {
+					String query = "UPDATE stock SET price = ? WHERE category = ? AND product_name = ?";
+
+					PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+					preparedStatement.setDouble(1, newPrice);
+					preparedStatement.setString(2, categoryName);
+					preparedStatement.setString(3, productName);
+
+					int confirm = preparedStatement.executeUpdate();
+					if (confirm > 0) {
+						System.out.printf("Price of product {%s} in category {%s} successfully modified.\n", productName, categoryName);
+
+						// Close connection
+						connection.close();
+						return true;
+
+					} else {
+						System.out.println("<!> Failed modifying product");
+
+						// Close connection
+						connection.close();
+						return false;
 					}
 				} else {
-					System.out.println("Product " + productName + " in category " + categoryName + " not in stock");
+					System.out.println("New values are the same as the old values.");
+
+					// Close connection
+					connection.close();
+					return false;
 				}
+
 			} else {
-				System.out.println("New values are the same as the old values.");
+				System.out.println("Product doesn't exists");
+
+				// Close connection
+				connection.close();
+				return false;
 			}
-
-			// Close connection
-			connection.close();
-
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -392,17 +446,16 @@ public class Main {
 	 * @param categoryName = category from which we want to delete
 	 * @param product = product which we want to delete
 	 */
-	public static void deleteProductByBarcode(String categoryName, Product product) {
+	public static boolean deleteProduct(String categoryName, Product product) {
 		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
 
 		try {
 			Connection connection = DriverManager.getConnection(url);
 			System.out.println("Connected successfully to database.");
 
-			String barcode = product.getBarcode();
+			if (product != null) {
+				String barcode = product.getBarcode();
 
-			boolean productExists = isProductInStockByBarcode(categoryName, barcode);
-			if (productExists) {
 				String sql = "DELETE FROM stock WHERE category = ? AND barcode = ?";
 
 				PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -412,15 +465,24 @@ public class Main {
 				int result = preparedStatement.executeUpdate();
 				if (result > 0) {
 					System.out.printf("Successfully deleted product with barcode {%s} from category {%s}\n", barcode, categoryName);
+
+					// Close connection
+					connection.close();
+					return true;
 				} else {
 					System.out.println("<!> Error while deleting product <!>");
+
+					// Close connection
+					connection.close();
+					return false;
 				}
 			} else {
-				System.out.println("Product with the provided barcode was not found in the stock for the given category");
-			}
+				System.out.println("Product doesn't exists.");
 
-			// Close connection
-			connection.close();
+				// Close connection
+				connection.close();
+				return false;
+			}
 
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
@@ -466,7 +528,6 @@ public class Main {
 	/**
 	 * Function for inserting product into shopping cart
 	 * @param product = product data
-	 *                TODO: DO IMPLEMENTATION FOR ADDING THE WANTED QUANTITY FOR EACH PRODUCT
 	 */
 	public static void insertIntoShoppingCart(Product product) {
 		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
@@ -497,8 +558,8 @@ public class Main {
 	}
 
 	/**
-	 * Main where we test our functions
-	 * @param args = args
+	 * Main function
+	 * @param args = arguments
 	 */
 	public static void main(String[] args) {
 
@@ -533,12 +594,14 @@ public class Main {
 		 }
 		 **/
 
-		Product product = getProductDetails("0101");
+		//Product product = getProductDetails("0120");
+		//modifyProduct("CPUs", product, 4, 400);
+		//deleteProduct("CPUs", product);
 
-		String name = product.getName();
-		System.out.println(isProductInStockByName("CPUs", name));
+		//String name = product.getName();
+		//System.out.println(isProductInStockByName("CPUs", name));
 
-		insertIntoStockTable("CPUs", new Product("0101", "I9-11750KF", 5, 650));
+		//insertIntoStockTable("CPUs", new Product("0101", "I9-11750KF", 5, 650));
 		//System.out.println(isProductInCartByBarcode(product));
 		//insertIntoShoppingCart(product);
 
