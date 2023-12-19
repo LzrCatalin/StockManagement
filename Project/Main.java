@@ -529,28 +529,48 @@ public class Main {
 	 * Function for inserting product into shopping cart
 	 * @param product = product data
 	 */
-	public static void insertIntoShoppingCart(Product product) {
+	public static boolean insertIntoShoppingCart(Product product, int wantedQuantity) {
 		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
 
 		try {
 			Connection connection = DriverManager.getConnection(url);
 			System.out.println("Connected successfully to shopping cart db.");
 
-			boolean productExists = isProductInCartByBarcode(product);
-			if (!productExists) {
-				String query = "INSERT INTO shoppingcart (barcode, quantity, price) VALUES (?, ?, ?)";
+			if (product != null) {
+				String barcode = product.getBarcode();
+				int quantity = product.getQuantity();
+				double price = product.getPrice();
 
-				PreparedStatement preparedStatement = connection.prepareStatement(query);
-				preparedStatement.setString(1, product.getBarcode());
-				preparedStatement.setInt(2, product.getQuantity());
-				preparedStatement.setDouble(3, product.getPrice());
+				if (wantedQuantity <= quantity) {
+					String query = "INSERT INTO shoppingcart (barcode, quantity, price) VALUES (?, ?, ?)";
 
-				preparedStatement.executeUpdate();
-				System.out.println("Successfully added product into shopping cart.");
+					PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+					preparedStatement.setString(1, barcode);
+					preparedStatement.setInt(2, wantedQuantity);
+					preparedStatement.setDouble(3, price * wantedQuantity);
+
+					preparedStatement.executeUpdate();
+					System.out.println("Data added successfully into shopping cart.");
+
+					// Close connection
+					connection.close();
+					return true;
+
+				} else {
+					System.out.println("<!> Wanted quantity greater than available in stock. <!>");
+
+					// Close connection
+					connection.close();
+					return false;
+				}
+			} else {
+				System.out.println("Product doesn't exists.");
+
+				// Close connection
+				connection.close();
+				return false;
 			}
-			// ADD ELSE
-			// Close connection
-			connection.close();
 
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
@@ -594,7 +614,9 @@ public class Main {
 		 }
 		 **/
 
-		//Product product = getProductDetails("0120");
+		Product product = getProductDetails("0102");
+		System.out.println(product);
+		insertIntoShoppingCart(product, 5);
 		//modifyProduct("CPUs", product, 4, 400);
 		//deleteProduct("CPUs", product);
 
