@@ -491,10 +491,10 @@ public class Main {
 
 	/**
 	 * Function for checking if barcode exists inside shopping cart
-	 * @param product = product data
+	 * @param barcode = product data
 	 * @return true if barcode found/ false if not
 	 */
-	public static boolean isProductInCartByBarcode(Product product) {
+	public static boolean isProductInCartByBarcode(String barcode) {
 		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
 		boolean exists = false;
 
@@ -505,7 +505,7 @@ public class Main {
 			String query = "SELECT * FROM shoppingcart WHERE barcode = ?";
 
 			PreparedStatement preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setString(1, product.getBarcode());
+			preparedStatement.setString(1, barcode);
 
 			// Get result
 			ResultSet resultSet = preparedStatement.executeQuery();
@@ -577,6 +577,58 @@ public class Main {
 		}
 	}
 
+	public static boolean purchasingShoppingCart(Product product, int purchasedQuantity) {
+		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
+
+		try {
+			Connection connection = DriverManager.getConnection(url);
+			System.out.println("Connected successfully.");
+
+			if (product != null) {
+				String barcode = product.getBarcode();
+				int quantity = product.getQuantity();
+
+				if (isProductInCartByBarcode(barcode)) {
+					// Query for updating stock db after purchasing an item
+					String query_purchasing = "UPDATE stock " +
+												"SET quantity = ? " +
+												"WHERE barcode in (SELECT  barcode FROM shoppingcart WHERE barcode = ?)";
+					// Query for updating / deleting shopping cart db after finalizing purchase
+					String query_empty_cart = "DELETE FROM shoppingcart WHERE barcode = ?";
+
+					// Statement for purchasing
+					PreparedStatement preparedStatement_purchase = connection.prepareStatement(query_purchasing);
+					preparedStatement_purchase.setInt(1, quantity - purchasedQuantity);
+					preparedStatement_purchase.setString(2, barcode);
+
+					// Statement for emptying stock after item purchased
+					PreparedStatement preparedStatement_empty = connection.prepareStatement(query_empty_cart);
+					preparedStatement_empty.setString(1, barcode);
+
+					preparedStatement_purchase.executeUpdate();
+					preparedStatement_empty.executeUpdate();
+
+					// Close connection
+					connection.close();
+					return true;
+				} else {
+					System.out.println("Product not in shopping cart.");
+
+					// Close connection
+					connection.close();
+					return false;
+				}
+			} else {
+				System.out.println("Product doesn't exists.");
+
+				// Close connection
+				connection.close();
+				return false;
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
 	/**
 	 * Main function
 	 * @param args = arguments
@@ -616,7 +668,8 @@ public class Main {
 
 		Product product = getProductDetails("0102");
 		System.out.println(product);
-		insertIntoShoppingCart(product, 5);
+		//insertIntoShoppingCart(product, 5);
+		purchasingShoppingCart(product, 5);
 		//modifyProduct("CPUs", product, 4, 400);
 		//deleteProduct("CPUs", product);
 
