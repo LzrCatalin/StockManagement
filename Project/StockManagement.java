@@ -249,9 +249,7 @@ public class StockManagement extends JFrame {
 	 * @return = JButton that adds a product to the shopping cart.
 	 */
 	private JButton getAddToCartButton() {
-		// TODO
 		JButton addToCartButton = new JButton("Add To Cart");
-
 		addToCartButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -303,6 +301,54 @@ public class StockManagement extends JFrame {
 	}
 
 	/**
+	 * This method returns a JButton that deletes a product from the shopping cart.
+	 * @return = JButton that deletes a product from the shopping cart.
+	 */
+	private JButton getDeleteFromCartButton() {
+		JButton deleteFromCart = new JButton("Delete Product.");
+		deleteFromCart.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFrame addFrame = new JFrame("Delete Product From Cart");
+				addFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+				addFrame.setSize(400, 200);
+
+				JPanel addPanel = new JPanel();
+				addPanel.setLayout(new GridLayout(0, 2));
+
+				barcodeField = new JTextField(20);
+
+				JButton confirmAddButton = new JButton("Confirm Delete.");
+				confirmAddButton.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						if (barcodeField.getText().isEmpty()) {
+							JOptionPane.showMessageDialog(null, "Please fill all the spaces.");
+						} else {
+							try {
+								if (Main.deleteFromShoppingCart(barcodeField.getText())) {
+									JOptionPane.showMessageDialog(null, "Product deleted successfully,");
+								} else {
+									JOptionPane.showMessageDialog(null, "Failed deleting product.\n Check if barcode is valid.");
+								}
+							} catch (Exception ex) {
+								throw new RuntimeException(ex);
+							}
+						}
+					}
+				});
+				addPanel.add(new JLabel("Barcode: "));
+				addPanel.add(barcodeField);
+				addPanel.add(confirmAddButton);
+
+				addFrame.add(addPanel);
+				addFrame.setVisible(true);
+			}
+		});
+		return deleteFromCart;
+	}
+
+	/**
 	 * This method returns a JButton that opens the user panel.
 	 * @return = JButton that opens the user panel.
 	 */
@@ -319,8 +365,10 @@ public class StockManagement extends JFrame {
 				userPanel.setLayout(new GridLayout(0, 1));
 
 				JButton addCart = getAddToCartButton();
+				JButton deleteFromCart = getDeleteFromCartButton()	;
 
 				userPanel.add(addCart);
+				userPanel.add(deleteFromCart);
 
 				userFrame.add(userPanel);
 				userFrame.setVisible(true);
