@@ -214,6 +214,121 @@ public class StockManagement extends JFrame {
 	}
 
 	/**
+	 * This method returns a JButton that opens the admin panel.
+	 * @return = JButton that opens the admin panel.
+	 */
+	private JButton getAdminButton() {
+		JButton adminButton = new JButton("Admin");
+		adminButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFrame adminFrame = new JFrame("Admin Panel");
+				adminFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+				adminFrame.setSize(400, 200);
+
+				JPanel adminPanel = new JPanel();
+				adminPanel.setLayout(new GridLayout(0, 1));
+
+				JButton addProductButton = getAddButton();
+				JButton modifyProductButton = getModifyButton();
+				JButton deleteProductButton = getDeleteButton();
+
+				adminPanel.add(addProductButton);
+				adminPanel.add(modifyProductButton);
+				adminPanel.add(deleteProductButton);
+
+				adminFrame.add(adminPanel);
+				adminFrame.setVisible(true);
+			}
+		});
+		return adminButton;
+	}
+
+	/**
+	 * This method returns a JButton that adds a product to the shopping cart.
+	 * @return = JButton that adds a product to the shopping cart.
+	 */
+	private JButton getAddToCartButton() {
+		// TODO
+		JButton addToCartButton = new JButton("Add To Cart");
+
+		addToCartButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFrame addFrame = new JFrame("Add Product To Cart");
+				addFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+				addFrame.setSize(400, 200);
+
+				JPanel addPanel = new JPanel();
+				addPanel.setLayout(new GridLayout(0, 2));
+
+				barcodeField = new JTextField(20);
+				quantityField = new JTextField(20);
+
+				JButton confirmAddButton = new JButton("Confirm Choice");
+
+				confirmAddButton.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						if (barcodeField.getText().isEmpty() || quantityField.getText().isEmpty()) {
+							JOptionPane.showMessageDialog(null, "Please fill all the spaces.");
+						} else {
+							try {
+								String barcode = barcodeField.getText();
+								int quantity = Integer.parseInt(quantityField.getText());
+
+								Product product = Main.getProductDetails(barcode);
+								if (Main.insertIntoShoppingCart(product, quantity)) {
+									JOptionPane.showMessageDialog(null, "Added successfully to shopping cart.");
+								} else {
+									JOptionPane.showMessageDialog(null, "Failed adding.\n Check again if barcode exists and/or quantity is available.");
+								}
+							} catch (NumberFormatException | HeadlessException ex) {
+								throw new RuntimeException(ex);
+							}
+						}
+					}
+				});
+				addPanel.add(new JLabel("Barcode: "));
+				addPanel.add(barcodeField);
+				addPanel.add(new JLabel("Quantity: "));
+				addPanel.add(quantityField);
+				addPanel.add(confirmAddButton);
+
+				addFrame.add(addPanel);
+				addFrame.setVisible(true);
+			}
+		});
+		return addToCartButton;
+	}
+
+	/**
+	 * This method returns a JButton that opens the user panel.
+	 * @return = JButton that opens the user panel.
+	 */
+	private JButton getUserButton() {
+		JButton userButton = new JButton("User");
+		userButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFrame userFrame = new JFrame("User Panel");
+				userFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+				userFrame.setSize(400, 200);
+
+				JPanel userPanel = new JPanel();
+				userPanel.setLayout(new GridLayout(0, 1));
+
+				JButton addCart = getAddToCartButton();
+
+				userPanel.add(addCart);
+
+				userFrame.add(userPanel);
+				userFrame.setVisible(true);
+			}
+		});
+		return userButton;
+	}
+	/**
 	 * This is the constructor of the StockManagement class.
 	 */
 	public StockManagement() {
@@ -224,13 +339,10 @@ public class StockManagement extends JFrame {
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(0, 3));
 
-		JButton addProductButton = getAddButton();
-		JButton modifyProductButton = getModifyButton();
-		JButton deleteProductButton = getDeleteButton();
-
-		panel.add(addProductButton);
-		panel.add(modifyProductButton);
-		panel.add(deleteProductButton);
+		JButton adminButton = getAdminButton();
+		JButton userButton = getUserButton();
+		panel.add(adminButton);
+		panel.add(userButton);
 
 		add(panel);
 		setVisible(true);
