@@ -660,20 +660,29 @@ public class Main {
 								preparedStatement_purchase.executeUpdate();
 								preparedStatement_empty.executeUpdate();
 							}
+
 						} else {
 							System.out.println("Product not in shopping cart.");
+
+							// Close connection
+							connection.close();
 							return false;
 						}
 					} else {
 						System.out.println("Product doesn't exist.");
+
+						// Close connection
+						connection.close();
 						return false;
 					}
 				}
+				// Close connection
+				connection.close();
+				return true;
 			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
-		return false;
 	}
 
 	/**
