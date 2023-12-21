@@ -349,6 +349,25 @@ public class StockManagement extends JFrame {
 	}
 
 	/**
+	 * This method returns a JButton that confirms the purchase of the shopping cart.
+	 * @return = JButton that confirms the purchase of the shopping cart.
+	 */
+	private JButton getConfirmPurchase() {
+		JButton confirmPurchase = new JButton("Buy cart.");
+		confirmPurchase.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (Main.purchasingShoppingCart()) {
+					JOptionPane.showMessageDialog(null, "Purchase completed.");
+				} else {
+					JOptionPane.showMessageDialog(null, "Failed purchasing.");
+				}
+			}
+		});
+		return confirmPurchase;
+	}
+
+	/**
 	 * This method returns a JButton that opens the user panel.
 	 * @return = JButton that opens the user panel.
 	 */
@@ -365,10 +384,12 @@ public class StockManagement extends JFrame {
 				userPanel.setLayout(new GridLayout(0, 1));
 
 				JButton addCart = getAddToCartButton();
-				JButton deleteFromCart = getDeleteFromCartButton()	;
+				JButton deleteFromCart = getDeleteFromCartButton();
+				JButton confirmPurchase = getConfirmPurchase();
 
 				userPanel.add(addCart);
 				userPanel.add(deleteFromCart);
+				userPanel.add(confirmPurchase);
 
 				userFrame.add(userPanel);
 				userFrame.setVisible(true);
@@ -376,6 +397,7 @@ public class StockManagement extends JFrame {
 		});
 		return userButton;
 	}
+
 	/**
 	 * This is the constructor of the StockManagement class.
 	 */
