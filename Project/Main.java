@@ -578,6 +578,50 @@ public class Main {
 	}
 
 	/**
+	 * Function for deleting product from shopping cart
+	 * @param barcode = product data
+	 */
+	public static boolean deleteFromShoppingCart(String barcode) {
+		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
+
+		try {
+			Connection connection = DriverManager.getConnection(url);
+			System.out.println("Connected successfully to database.");
+
+			if (isProductInCartByBarcode(barcode)) {
+				String query = "DELETE FROM shoppingcart WHERE barcode = ?";
+
+				PreparedStatement preparedStatement = connection.prepareStatement(query);
+				preparedStatement.setString(1, barcode);
+
+				int result = preparedStatement.executeUpdate();
+				if (result > 0) {
+					System.out.printf("Successfully removed {%s}.", barcode);
+
+					// Close connection
+					connection.close();
+					return true;
+				} else {
+					System.out.printf("Failed removing {%s}.", barcode);
+
+					// Close connection
+					connection.close();
+					return false;
+				}
+			} else {
+				System.out.printf("Barcode {%s} is not in cart.", barcode);
+
+				// Close connection
+				connection.close();
+				return false;
+			}
+
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
 	 * Function for purchasing items from shopping cart
 	 * @return true if purchased successfully/ false if not
 	 */
@@ -685,6 +729,8 @@ public class Main {
 
 		//boolean result = isProductInStockByBarcode("CPUs", "0101");
 		//System.out.println(result);
+
+		//deleteFromShoppingCart("0102");
 
 		// Calling modify product function
 		/**
