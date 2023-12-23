@@ -1,6 +1,9 @@
 package Project;
 
+
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Main {
 	/**
@@ -686,6 +689,42 @@ public class Main {
 	}
 
 	/**
+	 * Function for getting stock data
+	 * @return = hashmap with stock data
+	 */
+	public static HashMap<String, ArrayList<Product>> getStockData() {
+		HashMap<String, ArrayList<Product>> products = new HashMap<>();
+		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
+
+		try {
+			Connection connection = DriverManager.getConnection(url);
+			System.out.println("Connected to db.");
+
+			String query = "SELECT * FROM stock";
+			try (PreparedStatement preparedStatement = connection.prepareStatement(query);
+				ResultSet resultSet = preparedStatement.executeQuery()) {
+
+				while (resultSet.next()) {
+					String category = resultSet.getString("category");
+					String product_name = resultSet.getString("product_name");
+					String barcode = resultSet.getString("barcode");
+					int quantity = resultSet.getInt("quantity");
+					double price = resultSet.getDouble("price");
+					Product product = new Product(product_name, barcode, quantity, price);
+
+					if (!products.containsKey(category)) {
+						products.put(category, new ArrayList<>());
+					} else {
+						products.get(category).add(product);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		return products;
+	}
+	/**
 	 * Main function
 	 * @param args = arguments
 	 */
@@ -735,6 +774,17 @@ public class Main {
 		//insertIntoStockTable("CPUs", new Product("0101", "I9-11750KF", 5, 650));
 		//System.out.println(isProductInCartByBarcode(product));
 		//insertIntoShoppingCart(product);
+
+		/**
+		HashMap<String, ArrayList<Product>> test = getStockData();
+		int sum = 0;
+		for (Map.Entry<String, ArrayList<Product>> it : test.entrySet()) {
+			System.out.println(it);
+			sum += it.getValue().size();
+			System.out.println(it.getValue().size());
+		}
+		System.out.println(sum);
+		**/
 
 		//boolean result = isProductInStockByBarcode("CPUs", "0101");
 		//System.out.println(result);
