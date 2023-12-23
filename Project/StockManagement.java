@@ -4,6 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import Project.Main;
 
@@ -232,10 +235,12 @@ public class StockManagement extends JFrame {
 				JButton addProductButton = getAddButton();
 				JButton modifyProductButton = getModifyButton();
 				JButton deleteProductButton = getDeleteButton();
+				JButton stockDetailsButton = getStockDetails();
 
 				adminPanel.add(addProductButton);
 				adminPanel.add(modifyProductButton);
 				adminPanel.add(deleteProductButton);
+				adminPanel.add(stockDetailsButton);
 
 				adminFrame.add(adminPanel);
 				adminFrame.setVisible(true);
@@ -396,6 +401,54 @@ public class StockManagement extends JFrame {
 			}
 		});
 		return userButton;
+	}
+
+	/**
+	 * This method returns a JButton that displays the stock details.
+	 * @return = JButton that displays the stock details.
+	 */
+	private JButton getStockDetails() {
+		JButton stockDetailsButton = new JButton("Stock Details");
+		stockDetailsButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// Return the hashmap of products to display
+				HashMap<String, ArrayList<Product>> products = Main.getStockData();
+
+				JFrame frame = new JFrame("Stock Details");
+				JTextArea textArea = new JTextArea(20, 40);
+				textArea.setEditable(false);
+
+				JScrollPane scrollPane = new JScrollPane(textArea);
+				frame.add(scrollPane);
+
+				// Get the total amount of products in stock
+				int totalProducts = 0;
+
+				StringBuilder details = new StringBuilder();
+				for (Map.Entry<String, ArrayList<Product>> entry : products.entrySet()) {
+					details.append(entry.getKey()).append(":").append("\n");
+
+					// Add the size of each arraylist(value) for each category (key)
+					totalProducts += entry.getValue().size();
+					System.out.println(totalProducts);
+
+					for (Product product : entry.getValue()) {
+						details.append(product).append("\n");
+					}
+					System.out.println(totalProducts);
+					details.append("\n");
+				}
+				details.append("Total number of products in stock: ").append(totalProducts);
+
+				textArea.setText(details.toString());
+
+				frame.pack();
+				frame.setLocationRelativeTo(null);
+				frame.setVisible(true);
+			}
+		});
+		return stockDetailsButton;
 	}
 
 	/**
