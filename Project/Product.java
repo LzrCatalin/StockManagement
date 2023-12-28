@@ -1,9 +1,5 @@
 package Project;
 
-import javax.sound.sampled.Port;
-import java.util.ArrayList;
-import java.util.Collection;
-
 public class Product {
 	private String barcode;
 	private String name;
@@ -15,6 +11,15 @@ public class Product {
 		this.name = name;
 		this.quantity = quantity;
 		this.price = price;
+	}
+
+	// New constructor used for products stored inside shopping cart
+	public Product(String barcode, int quantity, double price) {
+		this.barcode = barcode;
+		this.quantity = quantity;
+		this.price = price;
+		// Set default name
+		this.name = "";
 	}
 
 	public String getBarcode() {
