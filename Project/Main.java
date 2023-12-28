@@ -1,6 +1,7 @@
 package Project;
 
 
+import java.awt.image.AreaAveragingScaleFilter;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -724,6 +725,41 @@ public class Main {
 		}
 		return products;
 	}
+
+	/**
+	 * Function for getting shopping cart data
+	 * @return = arraylist with shopping cart data
+	 */
+	public static ArrayList<Product> getCartData() {
+		ArrayList<Product> products = new ArrayList<>();
+		String url = "jdbc:sqlite:/home/catalin/workspace/git/StockManagement/identifier.sqlite";
+
+		try {
+			Connection connection = DriverManager.getConnection(url);
+			System.out.println("Successfully connected to db.");
+
+			String query = "SELECT * from shoppingcart";
+			try(PreparedStatement preparedStatement = connection.prepareStatement(query);
+				ResultSet resultSet = preparedStatement.executeQuery()) {
+
+				while (resultSet.next()) {
+					String barcode = resultSet.getString("barcode");
+					int quantity = resultSet.getInt("quantity");
+					double price = resultSet.getDouble("price");
+
+					// Create products based on info inside shopping cart
+					Product product = new Product(barcode, quantity, price);
+
+					// Add product to arraylist
+					products.add(product);
+				}
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		return products;
+	}
+
 	/**
 	 * Main function
 	 * @param args = arguments
@@ -761,12 +797,16 @@ public class Main {
 		 }
 		 **/
 
-		//Product product = getProductDetails("0201");
+		//Product product = getProductDetails("0202");
 		//System.out.println(product);
-		//insertIntoShoppingCart(product, 2);
+		//insertIntoShoppingCart(product, 1);
 		//purchasingShoppingCart();
 		//modifyProduct("CPUs", product, 4, 400);
 		//deleteProduct("CPUs", product);
+		ArrayList<Product> test = getCartData();
+		for (Product product : test) {
+			System.out.println(product);
+		}
 
 		//String name = product.getName();
 		//System.out.println(isProductInStockByName("CPUs", name));
