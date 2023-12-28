@@ -391,10 +391,12 @@ public class StockManagement extends JFrame {
 				JButton addCart = getAddToCartButton();
 				JButton deleteFromCart = getDeleteFromCartButton();
 				JButton confirmPurchase = getConfirmPurchase();
+				JButton cartDetails = getCartDetails();
 
 				userPanel.add(addCart);
 				userPanel.add(deleteFromCart);
 				userPanel.add(confirmPurchase);
+				userPanel.add(cartDetails);
 
 				userFrame.add(userPanel);
 				userFrame.setVisible(true);
@@ -424,6 +426,8 @@ public class StockManagement extends JFrame {
 
 				// Get the total amount of products in stock
 				int totalProducts = 0;
+				int totalQuantity = 0;
+				double totalPrice = 0.0;
 
 				StringBuilder details = new StringBuilder();
 				for (Map.Entry<String, ArrayList<Product>> entry : products.entrySet()) {
@@ -433,6 +437,12 @@ public class StockManagement extends JFrame {
 					totalProducts += entry.getValue().size();
 					System.out.println(totalProducts);
 
+					// Iterate through arraylist(value of hashmap) to be able to get total quantity and price of products
+					for (int i = 0; i < entry.getValue().size(); i++) {
+						totalQuantity += entry.getValue().get(i).getQuantity();
+						totalPrice += entry.getValue().get(i).getPrice() * entry.getValue().get(i).getQuantity();
+					}
+
 					for (Product product : entry.getValue()) {
 						details.append(product).append("\n");
 					}
@@ -440,6 +450,8 @@ public class StockManagement extends JFrame {
 					details.append("\n");
 				}
 				details.append("Total number of products in stock: ").append(totalProducts);
+				details.append("\nTotal quantity of products in stock: ").append(totalQuantity);
+				details.append("\nTotal price of products in stock: ").append(totalPrice).append("$\n");
 
 				textArea.setText(details.toString());
 
@@ -449,6 +461,53 @@ public class StockManagement extends JFrame {
 			}
 		});
 		return stockDetailsButton;
+	}
+
+	/**
+	 * This method returns a JButton that displays the cart details.
+	 * @return = JButton that displays the cart details.
+	 */
+	private JButton getCartDetails() {
+		JButton cartDetailsButton = new JButton("Cart Details");
+
+		cartDetailsButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ArrayList<Product> products = Main.getCartData();
+
+				JFrame frame = new JFrame("Cart Details");
+				JTextArea textArea = new JTextArea(20, 40);
+				textArea.setEditable(false);
+
+				JScrollPane scrollPane = new JScrollPane(textArea);
+				frame.add(scrollPane);
+
+				StringBuilder details = new StringBuilder();
+				details.append("====> Cart Details \n\n");
+				for (int i = 0; i < products.size(); i++) {
+					details.append("==> Product {").append(i+1).append("}\n");
+					details.append("Barcode: ").append(products.get(i).getBarcode()).append("\n");
+					details.append("Quantity: ").append(products.get(i).getQuantity()).append("\n");
+					details.append("Price: ").append(products.get(i).getPrice()).append("$\n");
+					details.append("\n");
+				}
+				// Getting number of products stored inside cart
+				details.append(" <!> Total number of products in cart: ").append(products.size()).append("\n");
+
+				// Getting total sum of prices of products from cart
+				double totalPrice = 0.0;
+				for (Product product : products) {
+					totalPrice += product.getPrice();
+				}
+				details.append(" \n<!> Total price of your shopping cart: ").append(totalPrice).append("$\n");
+				textArea.setText(details.toString());
+
+				frame.pack();
+				frame.setLocationRelativeTo(null);
+				frame.setVisible(true);
+			}
+		});
+		return cartDetailsButton;
 	}
 
 	/**
