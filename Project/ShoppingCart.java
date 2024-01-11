@@ -1,10 +1,19 @@
 package Project;
 
+/**
+ * This class is used to store the products that the user has added to their shopping cart
+ */
 public class ShoppingCart {
 	private String barcode;
 	private int quantity;
 	private double price;
 
+	/**
+	 * Constructor for ShoppingCart
+	 * @param barcode = barcode of the product
+	 * @param quantity = quantity of the product
+	 * @param price = price of the product
+	 */
 	public ShoppingCart(String barcode, int quantity, double price) {
 		this.barcode = barcode;
 		this.quantity = quantity;

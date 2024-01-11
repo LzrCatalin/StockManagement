@@ -6,6 +6,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * This class is used to store the products that the user has added to their shopping cart
+ */
 public class Main {
 	/**
 	 * Create table stock for my database

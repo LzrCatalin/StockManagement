@@ -1,15 +1,19 @@
 package Project;
 
-import javax.swing.*;
-import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
+/**
+ * This class is used to store the products that the user has added to their shopping cart
+ */
 public class Category {
 	private String categoryName;
 	private ArrayList<Product> products;
 
+	/**
+	 * Constructor for Category
+	 * @param name = name of the category
+	 * @param products = products in the category
+	 */
 	public Category(String name, ArrayList<Product> products) {
 		this.categoryName = name;
 		this.products = products;

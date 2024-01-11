@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * This class is used to test the methods in the Main class
+ */
 public class TestClass {
 	@Test
 	/**
